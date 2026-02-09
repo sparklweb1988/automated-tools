@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+
+<div class="container">
+    <!-- Description -->
+    <div class="text-center mb-5 pt-5">
+        <h2 class='pt-4'>Document Converter</h2>
+        <p class="lead pt-5">
+            Convert between DOCX and PDF instantly. Upload your file, wait a moment, and download the converted version.
+        </p>
+    </div>
+
+    <div class="row justify-content-center">
+        <!-- DOCX -> PDF Card -->
+        <div class="col-md-6 mb-4">
+            <div class="card p-5">
+                <h3 class="text-center">DOCX → PDF</h3>
+
+                <div id="docxSpinner" class="text-center my-3" style="display:none;">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Converting...</p>
+                </div>
+
+                <form id="docxForm" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="file" name="file" required class="form-control mb-3">
+                    <button id="docxBtn" type="submit" class="btn btn-primary w-100">
+                        Convert & Download
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- PDF -> DOCX Card -->
+        <div class="col-md-6 mb-4">
+            <div class="card p-5">
+                <h3 class="text-center">PDF → DOCX</h3>
+
+                <div id="pdfSpinner" class="text-center my-3" style="display:none;">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2">Converting...</p>
+                </div>
+
+                <form id="pdfForm" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="file" name="file" required class="form-control mb-3">
+                    <button id="pdfBtn" type="submit" class="btn btn-primary w-100">
+                        Convert & Download
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function downloadBlob(blob, filename) {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+    }
+
+    async function submitForm(formId, url, spinnerId, btnId) {
+        const form = document.getElementById(formId);
+        const spinner = document.getElementById(spinnerId);
+        const btn = document.getElementById(btnId);
+
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const data = new FormData(form);
+
+            spinner.style.display = "block";
+            btn.disabled = true;
+
+            const response = await fetch(url, {
+                method: "POST",
+                body: data
+            });
+
+            // Get filename from header
+            const disposition = response.headers.get("Content-Disposition");
+            const filenameMatch = /filename="(.+)"/.exec(disposition);
+            const filename = filenameMatch ? filenameMatch[1] : "download";
+
+            const blob = await response.blob();
+            downloadBlob(blob, filename);
+
+            // Refresh page after 1 second
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        });
+    }
+
+    submitForm("docxForm", "/convert/docx-to-pdf/", "docxSpinner", "docxBtn");
+    submitForm("pdfForm", "/convert/pdf-to-docx/", "pdfSpinner", "pdfBtn");
+</script>
+{% endblock %}

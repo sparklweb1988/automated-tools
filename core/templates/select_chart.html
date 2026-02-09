@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+    <h2 class='text-center'>Visualize Data</h2>
+
+    <form method="post" action="{% url 'generate_chart' %}">
+        {% csrf_token %}
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <label>X Column</label>
+                <select name="x_column" class="form-select" required>
+                    {% for col in columns %}
+                    <option value="{{ col }}">{{ col }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label>Y Column</label>
+                <select name="y_column" class="form-select" required>
+                    {% for col in columns %}
+                    <option value="{{ col }}">{{ col }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label>Chart Type</label>
+                <select name="chart_type" class="form-select" required>
+                    <option value="bar">Bar</option>
+                    <option value="line">Line</option>
+                    <option value="scatter">Scatter</option>
+                    <option value="pie">Pie</option>
+                </select>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary mb-3">Generate Chart</button>
+        <a href="{% url 'upload_visualization' %}" class="btn btn-outline-secondary mb-3">Back</a>
+    </form>
+
+    {% if plots %}
+    <h3 class='text-center'>Visualization</h3>
+    <div class="row">
+        {% for plot in plots %}
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <img src="data:image/png;base64,{{ plot }}" class="img-fluid">
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <a href="{% url 'download_charts_excel' %}" class="btn btn-success">Download Charts as Excel</a>
+    <br><br>
+    <a href="{% url 'download_charts_pdf' %}" class="btn btn-danger">Download Charts as Pdf</a>
+    {% endif %}
+</div>
+{% endblock %}
