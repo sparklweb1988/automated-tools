@@ -72,19 +72,22 @@ def find_duplicate_columns(df):
     return {k: v for k, v in duplicates.items() if len(v) > 1}
 
 
-# ---------------- DATA CLEANER ----------------
+# ---------------- DATA CLEANER ---------------
+
+
 def upload_file(request):
     if request.method == "GET":
         return render(request, "upload.html")
 
-
-      if file.size > settings.FILE_UPLOAD_MAX_MEMORY_SIZE:
-          raise ValidationError("File size exceeds the maximum allowed limit of 1GB.")
-
-    
     file = request.FILES.get("file")
     if not file:
         return render(request, "upload.html", {"error": "No file selected"})
+
+    # ✅ File size validation (AFTER getting file)
+    if file.size > settings.FILE_UPLOAD_MAX_MEMORY_SIZE:
+        return render(request, "upload.html", {
+            "error": "File size exceeds the maximum allowed limit of 1GB."
+        })
 
     try:
         if file.name.endswith(".csv"):
@@ -103,7 +106,6 @@ def upload_file(request):
 
     request.session["cleaned_df"] = df.to_dict(orient="list")
 
-    # Prepare preview
     preview_rows = df.head(10).values.tolist()
     columns = df.columns.tolist()
 
