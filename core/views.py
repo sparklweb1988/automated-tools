@@ -77,6 +77,11 @@ def upload_file(request):
     if request.method == "GET":
         return render(request, "upload.html")
 
+
+      if file.size > settings.FILE_UPLOAD_MAX_MEMORY_SIZE:
+          raise ValidationError("File size exceeds the maximum allowed limit of 1GB.")
+
+    
     file = request.FILES.get("file")
     if not file:
         return render(request, "upload.html", {"error": "No file selected"})
